@@ -3262,7 +3262,11 @@ dri2_initialize_wayland_swrast(_EGLDisplay *disp)
    if (!dri2_create_screen(disp))
       goto cleanup;
 
+#ifdef __ANDROID__
+   if (!dri2_setup_device(disp, true)) {
+#else
    if (!dri2_setup_device(disp, disp->Options.ForceSoftware)) {
+#endif
       _eglError(EGL_NOT_INITIALIZED, "DRI2: failed to setup EGLDevice");
       goto cleanup;
    }
