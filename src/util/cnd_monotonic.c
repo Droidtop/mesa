@@ -132,7 +132,11 @@ u_cnd_monotonic_timedwait(struct u_cnd_monotonic *cond, mtx_t *mtx,
    timespec_sub_saturate(&rel_time, abs_time, &now_time);
    int rt = pthread_cond_timedwait_relative_np(&cond->cond, mtx, &rel_time);
 #else
+#ifndef __TERMUX__
    int rt = pthread_cond_timedwait(&cond->cond, mtx, abs_time);
+#else
+   int rt = pthread_cond_timedwait(&cond->cond, &mtx->mutex, abs_time);
+#endif
 #endif
    if (rt == ETIMEDOUT)
       return thrd_timedout;
@@ -151,6 +155,10 @@ u_cnd_monotonic_wait(struct u_cnd_monotonic *cond, mtx_t *mtx)
                             (PCRITICAL_SECTION)mtx, INFINITE);
    return thrd_success;
 #else
+#ifndef __TERMUX__
    return (pthread_cond_wait(&cond->cond, mtx) == 0) ? thrd_success : thrd_error;
+#else
+   return (pthread_cond_wait(&cond->cond, &mtx->mutex) == 0) ? thrd_success : thrd_error;
+#endif
 #endif
 }

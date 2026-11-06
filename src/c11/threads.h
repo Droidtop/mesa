@@ -117,7 +117,15 @@ typedef struct
 typedef pthread_cond_t  cnd_t;
 typedef pthread_t       thrd_t;
 typedef pthread_key_t   tss_t;
+#ifdef __TERMUX__
+typedef struct {
+   pthread_mutex_t mutex;
+   uint32_t init_marker;
+} mtx_t;
+#define MTX_T_INITED_MARKER 0xdeadbeef
+#else
 typedef pthread_mutex_t mtx_t;
+#endif
 #ifndef __once_flag_defined
 typedef pthread_once_t  once_flag;
 #  define ONCE_FLAG_INIT PTHREAD_ONCE_INIT

@@ -97,7 +97,11 @@ cnd_timedwait(cnd_t *cond, mtx_t *mtx, const struct timespec *abs_time)
     assert(cond != NULL);
     assert(abs_time != NULL);
 
+#ifndef __TERMUX__
     rt = pthread_cond_timedwait(cond, mtx, abs_time);
+#else
+    rt = pthread_cond_timedwait(cond, &mtx->mutex, abs_time);
+#endif
     if (rt == ETIMEDOUT)
         return thrd_timedout;
     return (rt == 0) ? thrd_success : thrd_error;
@@ -109,7 +113,11 @@ cnd_wait(cnd_t *cond, mtx_t *mtx)
 {
     assert(mtx != NULL);
     assert(cond != NULL);
+#ifndef __TERMUX__
     return (pthread_cond_wait(cond, mtx) == 0) ? thrd_success : thrd_error;
+#else
+    return (pthread_cond_wait(cond, &mtx->mutex) == 0) ? thrd_success : thrd_error;
+#endif
 }
 
 
@@ -119,7 +127,12 @@ void
 mtx_destroy(mtx_t *mtx)
 {
     assert(mtx != NULL);
+#ifndef __TERMUX__
     pthread_mutex_destroy(mtx);
+#else
+    if (mtx->init_marker == MTX_T_INITED_MARKER)
+        pthread_mutex_destroy(&mtx->mutex);
+#endif
 }
 
 /*
@@ -160,13 +173,22 @@ mtx_init(mtx_t *mtx, int type)
         return thrd_error;
 
     if ((type & mtx_recursive) == 0) {
+#ifndef __TERMUX__
         pthread_mutex_init(mtx, NULL);
+#else
+        pthread_mutex_init(&mtx->mutex, NULL);
+        mtx->init_marker = MTX_T_INITED_MARKER;
+#endif
         return thrd_success;
     }
 
     pthread_mutexattr_init(&attr);
     pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+#ifndef __TERMUX__
     pthread_mutex_init(mtx, &attr);
+#else
+    pthread_mutex_init(&mtx->mutex, &attr);
+#endif
     pthread_mutexattr_destroy(&attr);
     return thrd_success;
 }
@@ -176,7 +198,11 @@ int
 mtx_lock(mtx_t *mtx)
 {
     assert(mtx != NULL);
+#ifndef __TERMUX__
     return (pthread_mutex_lock(mtx) == 0) ? thrd_success : thrd_error;
+#else
+    return (pthread_mutex_lock(&mtx->mutex) == 0) ? thrd_success : thrd_error;
+#endif
 }
 
 static int
@@ -204,7 +230,11 @@ mtx_timedlock(mtx_t *mtx, const struct timespec *ts)
     {
 #ifdef EMULATED_THREADS_USE_NATIVE_TIMEDLOCK
     int rt;
+#ifndef __TERMUX__
     rt = pthread_mutex_timedlock(mtx, ts);
+#else
+    rt = pthread_mutex_timedlock(&mtx->mutex, ts);
+#endif
     if (rt == 0)
         return thrd_success;
     return (rt == ETIMEDOUT) ? thrd_timedout : thrd_error;
@@ -229,7 +259,11 @@ int
 mtx_trylock(mtx_t *mtx)
 {
     assert(mtx != NULL);
+#ifndef __TERMUX__
     return (pthread_mutex_trylock(mtx) == 0) ? thrd_success : thrd_busy;
+#else
+    return (pthread_mutex_trylock(&mtx->mutex) == 0) ? thrd_success : thrd_busy;
+#endif
 }
 
 // 7.25.4.6
@@ -237,7 +271,11 @@ int
 mtx_unlock(mtx_t *mtx)
 {
     assert(mtx != NULL);
+#ifndef __TERMUX__
     return (pthread_mutex_unlock(mtx) == 0) ? thrd_success : thrd_error;
+#else
+    return (pthread_mutex_unlock(&mtx->mutex) == 0) ? thrd_success : thrd_error;
+#endif
 }
 
 
