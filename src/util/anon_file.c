@@ -125,7 +125,7 @@ get_or_create_user_temp_dir(void) {
         return buf;
     }
 
-    n = asprintf(&buf, "/tmp/xdg-runtime-mesa-%ld", (long)getuid());
+    n = asprintf(&buf, "@TERMUX_PREFIX@/tmp/xdg-runtime-mesa-%ld", (long)getuid());
     if (n < 0)
        return NULL;
     mesa_logd("%s: XDG_RUNTIME_DIR not set; falling back to temp dir %s",
