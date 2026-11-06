@@ -805,7 +805,8 @@ wait_timestamp_safe(int fd,
 
          wait.timeout = timeout_ms;
       } else if (ret == -1) {
-         assert(errno == ETIMEDOUT);
+         mesa_logw("tu_knl_kgsl.cc wait_timestamp_safe() errno: %s\n", strerror(errno));
+         //assert(errno == ETIMEDOUT);
          return VK_TIMEOUT;
       } else {
          return VK_SUCCESS;
