@@ -1120,7 +1120,11 @@ platform_x11_finalize(_EGLDisplay *disp, bool force_zink)
    if (!dri2_create_screen(disp))
       return false;
 
+#ifdef __ANDROID__
+   if (!dri2_setup_device(disp, true)) {
+#else
    if (!dri2_setup_device(disp, disp->Options.ForceSoftware || force_zink)) {
+#endif
       _eglError(EGL_NOT_INITIALIZED, "DRI2: failed to setup EGLDevice");
       return false;
    }
