@@ -1070,6 +1070,9 @@ llvmpipe_create_screen(struct sw_winsys *winsys)
    screen->num_threads = debug_get_num_option("LP_NUM_THREADS",
                                               screen->num_threads);
    screen->num_threads = MIN2(screen->num_threads, LP_MAX_THREADS);
+#if defined __ANDROID__
+   screen->num_threads = 0;
+#endif
 
    for (unsigned i = 0; i < MESA_SHADER_MESH_STAGES; i++)
       screen->base.nir_options[i] = &gallivm_nir_options;
